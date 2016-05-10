@@ -46,3 +46,28 @@
         'pkgs': [],
     },
 }, merge=salt['pillar.get']('keystone:control')) %}
+
+
+{% set keystone_settings = {} %}
+
+{% if pillar.get('keystone', {}).get('server', {'enabled': False } ).enabled %}
+   {% do keystone_settings.update({'token': pillar.keystone.server.service_token,
+			'endpoint': 'http://' ~ pillar.keystone.server.bind.private_address ~ ':' ~ pillar.keystone.server.bind.private_port ~ '/v2.0'
+			 }) 
+   %}
+{%- elif pillar.get('keystone', {}).get('client', {'enabled': False } ).enabled %}
+{%- if pillar.keystone.client.server.service_token is defined %}
+    {% do keystone_settings.update({'token': pillar.keystone.client.server.service_token,
+			'endpoint': 'http://' ~ pillar.keystone.client.server.host ~ ':' ~ pillar.keystone.client.server.private_port ~ '/v2.0'
+		 	}) 
+    %}
+{%- else %}
+    {% do keystone_settings.update({'user': pillar.keystone.client.server.user,
+			'password': pillar.keystone.client.server.password,
+			'tenant': pillar.keystone.client.server.tenant,
+			'auth_url': 'http://' ~ pillar.keystone.client.server.host ~ ':' ~ pillar.keystone.client.server.public_port ~ '/v2.0/'
+		 	}) 
+    %}
+{%- endif %}
+{%- endif %}
+

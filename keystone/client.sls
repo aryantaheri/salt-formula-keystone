@@ -1,4 +1,5 @@
 {%- from "keystone/map.jinja" import client with context %}
+{%- from "keystone/map.jinja" import keystone_settings with context %}
 {%- if client.enabled %}
 
 keystone_client_packages:
@@ -10,12 +11,24 @@ keystone_client_packages:
 keystone_client_roles:
   keystone.role_present:
   - names: {{ client.roles }}
+  {%- if keystone_settings.token is defined %}
+  - connection_token: {{ keystone_settings.token }}
+  - connection_endpoint: {{ keystone_settings.endpoint }}
+  {%- else %}
+  - connection_user: {{ keystone_settings.user }}
+  - connection_password: {{ keystone_settings.password }}
+  - connection_tenant: {{ keystone_settings.tenant }}
+  - connection_auth_utl: {{ keystone_settings.auth_url }}
+  {%- endif %}
+
 
 {%- for tenant_name, tenant in client.get('tenant', {}).iteritems() %}
 
 keystone_tenant_{{ tenant_name }}:
   keystone.tenant_present:
   - name: {{ tenant_name }}
+  - use:
+      - keystone: keystone_client_roles
   - require:
     - keystone: keystone_client_roles
 
@@ -36,6 +49,8 @@ keystone_{{ tenant_name }}_user_{{ user_name }}:
         {%- else %}
         - Member
         {%- endif %}
+  - use:
+      - keystone: keystone_client_roles
   - require:
     - keystone: keystone_tenant_{{ tenant_name }}
 
