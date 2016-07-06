@@ -18,7 +18,7 @@ keystone_client_roles:
   - connection_user: {{ keystone_settings.user }}
   - connection_password: {{ keystone_settings.password }}
   - connection_tenant: {{ keystone_settings.tenant }}
-  - connection_auth_utl: {{ keystone_settings.auth_url }}
+  - connection_auth_url: {{ keystone_settings.auth_url }}
   {%- endif %}
 
 
