@@ -2,11 +2,14 @@
 {%- from "keystone/map.jinja" import keystone_settings with context %}
 {%- if client.enabled %}
 
-keystone_client_packages:
-  pkg.installed:
-  - names: {{ client.pkgs }}
-
 {%- if client.tenant is defined %}
+
+keystone_salt_config:
+  file.managed:
+    - name: /etc/salt/minion.d/keystone.conf
+    - template: jinja
+    - source: salt://keystone/files/salt-minion.conf
+    - mode: 600
 
 keystone_client_roles:
   keystone.role_present:
@@ -20,7 +23,8 @@ keystone_client_roles:
   - connection_tenant: {{ keystone_settings.tenant }}
   - connection_auth_url: {{ keystone_settings.auth_url }}
   {%- endif %}
-
+  - require:
+    - file: keystone_salt_config
 
 {%- for tenant_name, tenant in client.get('tenant', {}).iteritems() %}
 

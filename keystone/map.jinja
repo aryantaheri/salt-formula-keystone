@@ -1,7 +1,7 @@
 
 {% set server = salt['grains.filter_by']({
     'Debian': {
-        'pkgs': ['keystone', 'python-keystone', 'python-keystoneclient', 'python-psycopg2', 'python-mysqldb', 'python-six', 'python-memcache', 'python-openstackclient'],
+        'pkgs': ['keystone', 'python-keystone', 'python-keystoneclient', 'python-psycopg2', 'python-mysqldb', 'python-six', 'python-memcache', 'python-openstackclient', 'gettext-base'],
         'service_name': 'keystone',
         'version': 'icehouse',
         'api_version': '2',
@@ -24,7 +24,7 @@
         'notification': False,
         'roles': ['admin', 'Member']
     },
-}, merge=salt['pillar.get']('keystone:server')) %}
+}, merge=pillar.keystone.get('server', {})) %}
 
 {% set client = salt['grains.filter_by']({
     'Debian': {
@@ -36,7 +36,7 @@
         'pkgs': ['python-keystoneclient'],
         'roles': ['admin', 'Member'],
     },
-}, merge=salt['pillar.get']('keystone:client')) %}
+}, merge=pillar.keystone.get('client', {})) %}
 
 {% set control = salt['grains.filter_by']({
     'Debian': {
@@ -45,14 +45,13 @@
     'RedHat': {
         'pkgs': [],
     },
-}, merge=salt['pillar.get']('keystone:control')) %}
-
+}, merge=pillar.keystone.get('control', {})) %}
 
 {% set keystone_settings = {} %}
 
 {% if pillar.get('keystone', {}).get('server', {'enabled': False } ).enabled %}
    {% do keystone_settings.update({'token': pillar.keystone.server.service_token,
-			'endpoint': 'http://' ~ pillar.keystone.server.bind.private_address ~ ':' ~ pillar.keystone.server.bind.private_port ~ '/v2.0'
+			'endpoint': 'http://' ~ pillar.keystone.server.bind.address ~ ':' ~ pillar.keystone.server.bind.private_port ~ '/v2.0'
 			 }) 
    %}
 {%- elif pillar.get('keystone', {}).get('client', {'enabled': False } ).enabled %}
